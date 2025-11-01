@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>LAKADI — Boutique</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root{ --bg:#0f1724; --card:#0b1220; --accent:#ff7a59; --muted:#9aa6b2; --glass: rgba(255,255,255,0.04); }
+    *{box-sizing:border-box}
+    body{font-family: 'Montserrat', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; margin:0; background:linear-gradient(180deg,#071123 0%, #081526 60%); color:#e6eef6;}
+    header{display:flex;align-items:center;justify-content:space-between;padding:20px 36px}
+    .brand{display:flex;align-items:center;gap:14px}
+    .logo{width:56px;height:56px;border-radius:12px;background:linear-gradient(135deg,var(--accent),#ffb085);display:flex;align-items:center;justify-content:center;font-weight:700;color:#1b1b1b;font-size:20px;box-shadow:0 6px 22px rgba(0,0,0,0.45)}
+    h1{margin:0;font-size:20px}
+    .subtitle{color:var(--muted);font-size:13px}
+    header .actions{display:flex;gap:10px;align-items:center}
+
+    main{display:grid;grid-template-columns:1fr 380px;gap:30px;padding:18px 36px}
+    .products{display:grid;grid-template-columns:repeat(2,1fr);gap:18px}
+    .card{background:linear-gradient(180deg,rgba(255,255,255,0.02),transparent);padding:16px;border-radius:14px;box-shadow:0 8px 30px rgba(2,6,23,0.6);}
+    .product-image{height:160px;border-radius:10px;background-size:cover;background-position:center;margin-bottom:12px}
+    .product-title{font-weight:600;margin:6px 0}
+    .price{font-weight:700;color:var(--accent)}
+    .btn{display:inline-block;padding:10px 14px;border-radius:10px;background:var(--accent);color:#1b1b1b;font-weight:700;border:none;cursor:pointer}
+    .btn.ghost{background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--muted);}
+
+    /* cart */
+    .cart{position:sticky;top:28px}
+    .cart h3{margin:0 0 12px 0}
+    .cart-items{max-height:420px;overflow:auto;margin-bottom:12px}
+    .cart-row{display:flex;gap:12px;align-items:center;padding:10px;border-radius:10px;background:var(--glass);margin-bottom:10px}
+    .cart-row img{width:56px;height:56px;border-radius:8px;object-fit:cover}
+    .cart-row .meta{flex:1}
+    .total{display:flex;justify-content:space-between;align-items:center;padding:14px 10px;border-radius:10px;background:linear-gradient(90deg, rgba(255,255,255,0.02), transparent)}
+
+    footer{padding:30px 36px;color:var(--muted);font-size:13px}
+
+    /* modal */
+    .modal{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(2,6,23,0.5);backdrop-filter: blur(4px);}
+    .modal-card{width:420px;background:#071627;padding:22px;border-radius:14px}
+    .input{width:100%;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:inherit;margin-bottom:10px}
+    .small{font-size:13px;color:var(--muted)}
+
+    /* admin */
+    .admin-panel{width:880px;max-width:96vw;background:#071627;padding:18px;border-radius:12px;color:inherit}
+    .admin-list{max-height:360px;overflow:auto;margin-top:10px}
+    .admin-row{display:flex;gap:10px;align-items:center;padding:8px;border-radius:8px;background:var(--glass);margin-bottom:8px}
+    .admin-row img{width:60px;height:60px;border-radius:8px;object-fit:cover}
+    .field{padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:inherit}
+
+    @media(max-width:900px){main{grid-template-columns:1fr;}.products{grid-template-columns:1fr;} .cart{position:relative;top:unset}}
+  </style>
+</head>
+<body>
+  <!-- LAKADI — single-file demo avec mode Directeur -->
+  <header>
+    <div class="brand">
+      <div class="logo">LA</div>
+      <div>
+        <h1>LAKADI</h1>
+        <div class="subtitle">Chaussures & Vêtements • Paiement par carte (démo)</div>
+      </div>
+    </div>
+    <div class="actions">
+      <button id="open-admin" class="btn ghost">🔑 Directeur</button>
+      <button id="open-cart" class="btn">Voir le panier (<span id="cart-count">0</span>)</button>
+    </div>
+  </header>
+
+  <main>
+    <section>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+        <h2 style="margin:0">Nos produits</h2>
+        <div class="small">Design épuré • Responsive</div>
+      </div>
+
+      <div class="products" id="products"></div>
+    </section>
+
+    <aside class="cart card" id="cart-panel">
+      <h3>Panier</h3>
+      <div class="cart-items" id="cart-items"></div>
+      <div class="total">
+        <div class="small">Total</div>
+        <div style="font-weight:800;font-size:18px" id="cart-total">0€</div>
+      </div>
+      <div style="margin-top:12px;display:flex;gap:8px">
+        <button id="checkout" class="btn">Passer à la commande</button>
+        <button id="clear-cart" class="btn ghost">Vider</button>
+      </div>
+    </aside>
+  </main>
+
+  <footer>
+    © <span id="year"></span> LAKADI — Créé avec ❤️. Pour accepter les paiements réels, consultez Stripe ou PayPal et sécurisez un backend.
+  </footer>
+
+  <!-- modal: paiement (démo) -->
+  <div id="modal" style="display:none" class="modal">
+    <div class="modal-card">
+      <h3>Paiement par carte (démo)</h3>
+      <p class="small">Entrez des informations fictives pour simuler un paiement. Pour un vrai paiement, remplacez par Stripe Elements et votre serveur.</p>
+      <input class="input" id="card-name" placeholder="Nom sur la carte" />
+      <input class="input" id="card-number" placeholder="Numéro de carte (1234 1234 1234 1234)" />
+      <div style="display:flex;gap:8px">
+        <input class="input" id="card-exp" placeholder="MM/AA" />
+        <input class="input" id="card-cvc" placeholder="CVC" style="max-width:120px" />
+      </div>
+      <div style="display:flex;gap:8px;margin-top:12px;justify-content:flex-end">
+        <button id="cancel-pay" class="btn ghost">Annuler</button>
+        <button id="pay-now" class="btn">Payer</button>
+      </div>
+      <p id="pay-msg" class="small" style="margin-top:10px"></p>
+    </div>
+  </div>
+
+  <!-- modal: admin (protégé par mot de passe) -->
+  <div id="admin-modal" style="display:none" class="modal">
+    <div class="admin-panel">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <h3>Mode Directeur</h3>
+        <div>
+          <button id="admin-logout" class="btn ghost">Fermer</button>
+        </div>
+      </div>
+
+      <div style="margin-top:10px;display:flex;gap:8px;align-items:center">
+        <input id="new-title" class="field" placeholder="Titre du produit" />
+        <input id="new-price" class="field" placeholder="Prix (€)" style="max-width:120px" />
+        <input id="new-img" class="field" placeholder="URL image" />
+        <button id="add-product" class="btn">Ajouter</button>
+      </div>
+
+      <div style="margin-top:12px;display:flex;gap:8px;align-items:center">
+        <input id="discount-percent" class="field" placeholder="% de remise (ex: 20)" style="max-width:160px" />
+        <button id="apply-discount" class="btn">Appliquer soldes</button>
+        <button id="clear-discount" class="btn ghost">Annuler soldes</button>
+      </div>
+
+      <div class="admin-list" id="admin-list"></div>
+    </div>
+  </div>
+
+  <script>
+    // ----- données produits (modifiable) -----
+    let PRODUCTS = [
+      {id:1,title:'Sneakers LAKADI — Blanc',price:59.90,img:'https://images.unsplash.com/photo-1519744792095-2f2205e87b6f?auto=format&fit=crop&w=800&q=60'},
+      {id:2,title:'Bottes en cuir — Marron',price:129.00,img:'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=800&q=60'},
+      {id:3,title:'T-shirt coton (logo)',price:19.90,img:'https://images.unsplash.com/photo-1541099649105-f69ad21f3246?auto=format&fit=crop&w=800&q=60'},
+      {id:4,title:'Jean slim — Bleu',price:49.00,img:'https://images.unsplash.com/photo-1530845640856-7f6b5b8e7b26?auto=format&fit=crop&w=800&q=60'},
+      {id:5,title:'Robe d’été — Imprimé',price:39.50,img:'https://images.unsplash.com/photo-1520975911159-0c146b6ad1e7?auto=format&fit=crop&w=800&q=60'},
+      {id:6,title:'Veste coupe-vent',price:74.00,img:'https://images.unsplash.com/photo-1540574163026-643ea20ade25?auto=format&fit=crop&w=800&q=60'}
+    ];
+
+    // --- paramètres admin ---
+    const ADMIN_PASSWORD = 'admin123'; // mot de passe par défaut (change-le si tu veux)
+
+    // Récupérer produits sauvegardés (si existant)
+    const storedProducts = localStorage.getItem('lakadi_products');
+    if(storedProducts){ try{ PRODUCTS = JSON.parse(storedProducts); }catch(e){ console.warn('Erreur parse produits',e); } }
+
+    // affichage produits
+    const productsEl = document.getElementById('products');
+    function renderProducts(){
+      productsEl.innerHTML='';
+      PRODUCTS.forEach(p=>{
+        const el = document.createElement('div'); el.className='card';
+        el.innerHTML = `
+          <div class="product-image" style="background-image:url(${p.img})"></div>
+          <div class="product-title">${p.title}</div>
+          <div class="small">Description courte et élégante.</div>
+          <div style="margin-top:10px;display:flex;justify-content:space-between;align-items:center">
+            <div class="price">${p.price.toFixed(2)}€</div>
+            <button class="btn" data-id="${p.id}">Ajouter</button>
+          </div>
+        `;
+        productsEl.appendChild(el);
+      });
+    }
+
+    // panier
+    let cart = JSON.parse(localStorage.getItem('lakadi_cart')||'[]');
+    const cartCount = document.getElementById('cart-count');
+    const cartItemsEl = document.getElementById('cart-items');
+    const cartTotalEl = document.getElementById('cart-total');
+    const yearEl = document.getElementById('year'); yearEl.textContent = new Date().getFullYear();
+
+    function saveCart(){ localStorage.setItem('lakadi_cart', JSON.stringify(cart)); renderCart(); }
+    function saveProducts(){ localStorage.setItem('lakadi_products', JSON.stringify(PRODUCTS)); renderProducts(); renderAdminList(); }
+
+    function addToCart(id){ const p = PRODUCTS.find(x=>x.id==id); const existing = cart.find(x=>x.id==id); if(existing){ existing.q++; } else { cart.push({id:p.id,title:p.title,price:p.price,q:1,img:p.img}); } saveCart(); }
+    function removeFromCart(id){ cart = cart.filter(x=>x.id!=id); saveCart(); }
+    function changeQty(id,delta){ const it = cart.find(x=>x.id==id); if(!it) return; it.q += delta; if(it.q<1) removeFromCart(id); saveCart(); }
+    function calcTotal(){ return cart.reduce((s,i)=>s + i.price * i.q, 0); }
+    function renderCart(){
+      cartItemsEl.innerHTML=''; cartCount.textContent = cart.reduce((s,i)=>s+i.q,0);
+      cart.forEach(it=>{
+        const r = document.createElement('div'); r.className='cart-row';
+        r.innerHTML = `
+          <img src="${it.img}" alt="">
+          <div class="meta">
+            <div style="font-weight:700">${it.title}</div>
+            <div class="small">${it.q} x ${it.price.toFixed(2)}€</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <button class="btn" data-action="inc" data-id="${it.id}">+</button>
+            <button class="btn ghost" data-action="dec" data-id="${it.id}">-</button>
+          </div>
+        `;
+        cartItemsEl.appendChild(r);
+      });
+      cartTotalEl.textContent = calcTotal().toFixed(2) + '€';
+    }
+
+    // admin UI
+    const adminModal = document.getElementById('admin-modal');
+    const adminListEl = document.getElementById('admin-list');
+    function renderAdminList(){
+      adminListEl.innerHTML='';
+      PRODUCTS.forEach(p=>{
+        const row = document.createElement('div'); row.className='admin-row';
+        row.innerHTML = `
+          <img src="${p.img}" alt="">
+          <input class="field edit-title" data-id="${p.id}" value="${escapeHtml(p.title)}" />
+          <input class="field edit-price" data-id="${p.id}" value="${p.price}" style="max-width:120px" />
+          <input class="field edit-img" data-id="${p.id}" value="${p.img}" />
+          <button class="btn save-prod" data-id="${p.id}">Enregistrer</button>
+          <button class="btn ghost del-prod" data-id="${p.id}">Supprimer</button>
+        `;
+        adminListEl.appendChild(row);
+      });
+    }
+
+    function escapeHtml(str){ return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+    // événements globaux
+    document.addEventListener('click', e=>{
+      // achat
+      if(e.target.matches('.btn[data-id]') && !e.target.classList.contains('save-prod')){
+        addToCart(Number(e.target.dataset.id));
+      }
+      if(e.target.matches('#open-cart')){
+        document.getElementById('cart-panel').scrollIntoView({behavior:'smooth'});
+      }
+      if(e.target.matches('#clear-cart')){ cart = []; saveCart(); }
+      if(e.target.matches('button[data-action]')){ const id = Number(e.target.dataset.id); if(e.target.dataset.action==='inc') changeQty(id,1); else changeQty(id,-1); }
+      if(e.target.matches('#checkout')){ if(cart.length===0){ alert('Votre panier est vide'); return; } document.getElementById('modal').style.display='flex'; }
+      if(e.target.matches('#cancel-pay')){ document.getElementById('modal').style.display='none'; }
+      if(e.target.matches('#pay-now')){ simulatePayment(); }
+
+      // admin open (demande mot de passe)
+      if(e.target.matches('#open-admin')){
+        const attempt = prompt('Mot de passe Directeur :');
+        if(attempt===null) return; // annuler
+        if(attempt===ADMIN_PASSWORD){ openAdmin(); } else { alert('Mot de passe incorrect'); }
+      }
+
+      // admin actions
+      if(e.target.matches('#add-product')){ const t = document.getElementById('new-title').value.trim(); const p = parseFloat(document.getElementById('new-price').value); const img = document.getElementById('new-img').value.trim(); if(!t||isNaN(p)){ alert('Titre et prix valides requis'); return; } const id = Date.now(); PRODUCTS.push({id:id,title:t,price:parseFloat(p.toFixed(2)),img: img||'https://images.unsplash.com/photo-1540574163026-643ea20ade25?auto=format&fit=crop&w=800&q=60'}); saveProducts(); document.getElementById('new-title').value=''; document.getElementById('new-price').value=''; document.getElementById('new-img').value=''; alert('Produit ajouté'); }
+      if(e.target.matches('.save-prod')){ const id = Number(e.target.dataset.id); const row = e.target.closest('.admin-row'); const title = row.querySelector('.edit-title').value.trim(); const price = parseFloat(row.querySelector('.edit-price').value); const img = row.querySelector('.edit-img').value.trim(); if(!title||isNaN(price)){ alert('Titre et prix valides requis'); return; } const prod = PRODUCTS.find(x=>x.id===id); if(prod){ prod.title = title; prod.price = parseFloat(price.toFixed(2)); prod.img = img||prod.img; saveProducts(); alert('Modifications enregistrées'); }
+      }
+      if(e.target.matches('.del-prod')){ const id = Number(e.target.dataset.id); if(confirm('Supprimer ce produit ?')){ PRODUCTS = PRODUCTS.filter(x=>x.id!==id); saveProducts(); alert('Produit supprimé'); } }
+      if(e.target.matches('#apply-discount')){ const v = parseFloat(document.getElementById('discount-percent').value); if(isNaN(v)||v<=0){ alert('Pourcentage valide requis'); return; } if(!confirm('Appliquer '+v+'% de remise sur tous les produits ?')) return; PRODUCTS.forEach(p=>{ p.price = parseFloat((p.price * (1 - v/100)).toFixed(2)); }); saveProducts(); alert('Soldes appliquées'); }
+      if(e.target.matches('#clear-discount')){ if(!confirm('Remettre les prix initiaux n’est pas possible automatiquement sauf si tu avais sauvegardé ailleurs. Continuer ?')){ return; } alert('Si tu veux pouvoir annuler les soldes, je peux ajouter une sauvegarde des prix originaux. Dis-le moi.'); }
+      if(e.target.matches('#admin-logout')){ closeAdmin(); }
+    });
+
+    // paiement (démo)
+    function simulatePayment(){
+      const name = document.getElementById('card-name').value.trim();
+      const number = document.getElementById('card-number').value.replace(/\s+/g,'');
+      const exp = document.getElementById('card-exp').value.trim();
+      const cvc = document.getElementById('card-cvc').value.trim();
+      const msg = document.getElementById('pay-msg'); msg.textContent='';
+      if(!name||number.length<12||!exp||cvc.length<3){ msg.textContent='Veuillez remplir des informations de carte valides (démo).'; return; }
+      msg.textContent = 'Traitement...';
+      setTimeout(()=>{
+        msg.textContent = 'Paiement réussi ! Merci pour votre commande.';
+        cart = []; saveCart();
+        setTimeout(()=>{ document.getElementById('modal').style.display='none'; document.getElementById('card-name').value=''; document.getElementById('card-number').value=''; document.getElementById('card-exp').value=''; document.getElementById('card-cvc').value=''; msg.textContent=''; },1500);
+      },1200);
+    }
+
+    // admin open/close
+    function openAdmin(){ adminModal.style.display='flex'; renderAdminList(); }
+    function closeAdmin(){ adminModal.style.display='none'; }
+
+    // initialisation
+    renderProducts(); renderCart();
+  </script>
+</body>
+</html>
